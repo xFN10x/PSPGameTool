@@ -10,7 +10,9 @@ ps1button = ui.Button(window,"PS1 Game Tool",131,23,116,33)
 ps1button:tofront()
 isoadderbutton = ui.Button(window,"ISO Adder",269,23,116,33)
 isoadderbutton:show()
-gamelistbutton = ui.Button(window,"Savedata List",131,77,116,33)
+savelistbutton = ui.Button(window,"Savedata List",131,77,116,33)
+savelistbutton:show()
+gamelistbutton = ui.Button(window,"Game List",131,131,116,33)
 gamelistbutton:show()
 window:show() 
 print(sys.currentdir)
@@ -19,7 +21,7 @@ ldl = sys.File(sys.currentdir.."/savedata/lastdriveletter.set"):open("read"):rea
 if sys.Directory(ldl.. "/PSP").exists and sys.Directory(ldl.. "/ISO").exists then
  ui.msg("Selected PSP at "..ldl)
 else
-  if ldl == "nil" then
+  if ldl == "/nil" then
     ui.msg("Select Drive Letter", "First Time Setup")
   else
     ui.error("The selected drive doesn't have the PSP/ISO folder, or is not a PSP")
@@ -177,13 +179,13 @@ function isoadderbutton.onClick()
     end
   end
 end
-function gamelistbutton.onClick()
+function savelistbutton.onClick()
   local list = { }
   for entry in each(sys.Directory(ldl.."PSP/SAVEDATA")) do
     list[#list+1] = entry.name
   end
   ui.msg("You can look at the saves on your PSP!")
-  local listwindow = ui.Window("PSP Game Tools: Game List","fixed",500,300)
+  local listwindow = ui.Window("PSP Game Tools: Save List","fixed",500,300)
   window:showmodal(listwindow)
   local isolist = ui.List(listwindow,list,0,0,150,300)
   gameimage = ui.Picture(listwindow,sys.currentdir.."/images/noneselected.png",160,50,288,160)
