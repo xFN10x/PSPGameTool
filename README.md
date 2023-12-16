@@ -11,8 +11,11 @@ In this app, there is a button for launching PSXTOPSP. To use that button, you h
 1. Download [PSXTOPSP](https://psp.brewology.com/downloads/get.php?id=9697)
 2. Extract it and move the psx2psp_v.1.4.2 folder to where you downloaded [PSPGameTool](https://github.com/xFN10x/PSPGameTool/)
 3. Rename the folder to "psxtopsp"
-4. Rename PSX2PSP.exe to app.exe
-5. Now that button should work.
+   ![image](https://github.com/xFN10x/PSPGameTool/assets/89083781/cfddff40-176c-42c6-b389-9792d4264de6)
+5. Rename PSX2PSP.exe to app.exe
+   ![Image2](https://github.com/xFN10x/PSPGameTool/blob/main/images/readmeimages/image2.PNG?raw=true)
+    
+7. Now that button should work.
 ## How To Install
 1. Download [LuaRT](https://luart.org/index.html#section_download "LuaRT")
 2. Download the [Source Code](https://github.com/xFN10x/PSPGameTool/archive/refs/heads/main.zip "Source Code")
