@@ -26,5 +26,5 @@ In this app, there is a button for launching PSXTOPSP. To use that button, you h
 7. (Optional) Select icon.ico in the images folder
 8. Click "Generate Executable"
 9. Double click on main.exe, and now you are running it!
-   ## Known Bugs
-   •When selecting a custom folder, you have to restart the program to use it. 
+## Known Bugs
+•When selecting a custom folder, you have to restart the program to use it. 
