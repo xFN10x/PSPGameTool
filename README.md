@@ -1,4 +1,5 @@
-# PSPGameTool
+# PSPGameTool 
+![logo](https://github.com/xFN10x/PSPGameTool/blob/main/images/logo.png?raw=true)
 Tools for Adding/Editing Games/Saves
 (Changelog at bottom)
 ## Features 
