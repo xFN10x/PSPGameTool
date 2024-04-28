@@ -2,6 +2,7 @@ ui = require("ui")
 sys = require("sys")
 com = require("compression")
 ini = require("ini")
+net = require("net")
 settings = sys.File("settings.ini")
 window = ui.Window("PSP Game Tools: Main Menu","fixed",504,212)
 window:loadicon(sys.currentdir.."/images/icon.ico")
@@ -20,89 +21,83 @@ reselectdrivebutton:show()
 window:show() 
 gamedatabase = sys.File(sys.currentdir.."/data/gamedatabase.txt")
 ldl = ini.decode(settings:open("read","utf8"):read()).sets.drive
-function reselectdrivebutton.onClick()
-  ui.msg("Reselecting Drive")
-  reselecingdrive = true
-  local driveinini = ini.decode(settings:open("read","utf8"):read())
-  driveinini["sets"]["drive"] = "none"
-  ini.save(settings,driveinini)
-  drivewindow = ui.Window("PSP Game Tools: Drive Selection","single",265,100)
-  drivewindow:loadicon(sys.currentdir.."/images/icon.ico")
-  window:showmodal(drivewindow)
-  customdirbutton = ui.Button(drivewindow,"...",92,9,25,25)
-  driveselect = ui.Combobox(drivewindow,false,{"D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z"},9,9,80)
-  driveshowbutton = ui.Button(drivewindow,"Show Connected Drives",120,9,140)
-  driveclosebutton = ui.Button(drivewindow,"Done",0,40,265,60)
-  function driveshowbutton.onClick()
-    sys.cmd("explorer ")
-    --file:\\
-  end
-  function customdirbutton.onClick()
-    local dir = ui.dirdialog("Open Directory with PSP and ISO folders")
-    if not dir == false then
-      print(dir.fullpath)
-      if sys.Directory(dir.fullpath.."/".. "PSP").exists == true and sys.Directory(dir.fullpath.."/".. "ISO").exists == true then
-        ui.msg("Selected PSP at "..dir.fullpath.."/")
-        local driveinini = ini.decode(settings:open("read","utf8"):read())
-        driveinini["sets"]["drive"] = dir.fullpath.."/"
-        ini.save(settings,driveinini)
-        drivewindow:hide()
-        print(ldl)
-        print(ldl.."PSP/GAME")
-      else
-        ui.error("Still not a psp...")
-      end
-      drivewindow:tofront()
-    end
-  end
-  function driveclosebutton.onClick()
-    if driveselect.selected == nil then
-      ui.error("Please Select a letter")
+local function FTPDone ()
+   if ftpportcheck.checked then
+      ftp = net.Ftp("ftp://"..ftphostentry.text..":guest@"..ftphostentry.text..":"..ftpportentry.text)
     else
-      if sys.Directory(driveselect.selected.text..":/".. "PSP").exists == true and sys.Directory(driveselect.selected.text..":/".. "ISO").exists == true then
-        ui.msg("Selected PSP at "..driveselect.selected.text..":/")
-        local driveinini = ini.decode(settings:open("read","utf8"):read())
-        driveinini["sets"]["drive"] = driveselect.selected.text..":/"
-        ini.save(settings,driveinini)
-        drivewindow:hide()
-      else
-        ui.error("Still not a psp...")
-      end
-    drivewindow:tofront()
+      ftp = net.Ftp(ftphostentry.text)
     end
-  end 
-  function drivewindow.onClose()
-    if not reselecingdrive then
-      if ui.confirm("The only program you can use without a drive selected, is PSXTOPSP, would you like to open it?") == "yes" then
-        sys.cmd(sys.currentdir.."/psxtopsp/app.exe")
-        return false
-      else
-        if ui.confirm("Would you like to exit?") == "yes" then
-          window:hide()
-        else
-          return false
+    o = 0
+    for name, isdir in ftp:list("*.*") do
+      if isdir then
+        if name == ftpfolder.text then
+          o = 1
+          ui.info("Found /"..ftpfolder.text.." folder...")
+          ftp.currentdir = "/"..ftpfolder.text
+          for name, isdir in ftp:list("*.*") do
+            print(name)
+            if isdir then
+              print(name)
+              if name == "GAME" then
+                correctfolders = 1
+              end
+            end
+          end
+          if correctfolders == 1 then
+            ftp.currentdir = "/"..ftpfolder.text
+            local driveinini = ini.decode(settings:open("read","utf8"):read())
+            driveinini["ftp"]["lh"] = ftphostentry.text
+            driveinini["ftp"]["lp"] = ftpportentry.text
+            driveinini["ftp"]["port?"] = tostring(ftpportcheck.checked)
+            driveinini["ftp"]["lf"] = ftpfolder.text
+            driveinini["sets"]["drive"] = "ftp"
+            ini.save(settings,driveinini)
+            drivewindow:hide()
+            print(ldl)
+            print(ldl.."PSP/GAME")
+          else
+            ui.error("No GAME or SAVEDATA folder")
+          end
         end
+      else
       end
     end
-  end
+    if o == 0 then
+      ui.error("Could not find folder.")
+    end
 end
-if ldl == "none" or sys.Directory(ldl.."PSP").exists == false then
-  if ldl == "none" then
+local function DriveSelect(OverideMessage)
+  if ldl == "none" and OverideMessage == nil then
     ui.msg("Select Drive Letter", "First Time Setup")
-  else
+  elseif OverideMessage == nil then
     ui.error("The selected drive doesn't have the PSP/ISO folder, or is not a PSP")
+  elseif OverideMessage ~= nil then
+    ui.msg(OverideMessage)
   end
-  drivewindow = ui.Window("PSP Game Tools: Drive Selection","single",265,100)
-  drivewindow:loadicon(sys.currentdir.."/images/icon.ico")
+  drivewindow = ui.Window("PSP Game Tools: Drive Selection","single",265,125)
+  drivemenu = ui.Tab(drivewindow,{"File","FTP"},0,0)
   window:showmodal(drivewindow)
-  customdirbutton = ui.Button(drivewindow,"...",92,9,25,25)
-  driveselect = ui.Combobox(drivewindow,false,{"D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z"},9,9,80)
-  driveshowbutton = ui.Button(drivewindow,"Show Connected Drives",120,9,140)
-  driveclosebutton = ui.Button(drivewindow,"Done",0,40,265,60)
+  customdirbutton = ui.Button(drivemenu.items[1],"...",92,9,25,25)
+  driveselect = ui.Combobox(drivemenu.items[1],false,{"D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z"},9,9,80)
+  driveshowbutton = ui.Button(drivemenu.items[1],"Show Connected Drives",120,9,140)
+  driveclosebutton = ui.Button(drivemenu.items[1],"Done",0,40,265,60)
+  ftphostentry = ui.Entry(drivemenu.items[2],"192.168.x.x",9,9)
+  ftpportentry = ui.Entry(drivemenu.items[2],"Port number",120,9)
+  ftpfolder = ui.Entry(drivemenu.items[2],"Folder",9,45)
+  ftpdonebutton = ui.Button(drivemenu.items[2],"Done",120,50,145,50)
+  ftpportcheck = ui.Checkbox(drivemenu.items[2],"Port?",120,32)
+  ftpportentry.enabled = false 
+  function ftpportcheck.onClick()
+    ftpportentry.enabled = ftpportcheck.checked
+  end
+  function ftpdonebutton.onClick()
+    ui.msg("FTP Support coming soon!")
+   -- FTPDone()
+  end
   function driveshowbutton.onClick()
     sys.cmd("explorer file:\\")
   end
-  function customdirbutton.onClick()
+  function customdirbutton.onClick()                          
     local dir = ui.dirdialog("Open Directory with PSP and ISO folders")
     if not dir == false then
       print(dir.fullpath)
@@ -111,6 +106,7 @@ if ldl == "none" or sys.Directory(ldl.."PSP").exists == false then
         local driveinini = ini.decode(settings:open("read","utf8"):read())
         driveinini["sets"]["drive"] = dir.fullpath.."/"
         ini.save(settings,driveinini)
+        ldl = ini.decode(settings:open("read","utf8"):read()).sets.drive
         drivewindow:hide()
         print(ldl)
         print(ldl.."PSP/GAME")
@@ -129,6 +125,7 @@ if ldl == "none" or sys.Directory(ldl.."PSP").exists == false then
         local driveinini = ini.decode(settings:open("read","utf8"):read())
         driveinini["sets"]["drive"] = driveselect.selected.text..":/"
         ini.save(settings,driveinini)
+        ldl = ini.decode(settings:open("read","utf8"):read()).sets.drive
         drivewindow:hide()
         print(ldl)
         print(ldl.."PSP/GAME")
@@ -149,6 +146,41 @@ if ldl == "none" or sys.Directory(ldl.."PSP").exists == false then
         return false
       end
     end
+  end
+end
+function reselectdrivebutton.onClick()
+ DriveSelect("Reselect Drive")
+end
+if ldl == "none" or sys.Directory(ldl.."PSP").exists == false then
+  if ldl == "ftp" then
+    ui.msg("Using FTP")
+    local driveinini = ini.decode(settings:open("read","utf8"):read())
+    if driveinini["ftp"]['port?'] == "true" then
+      ftp = net.Ftp("ftp://"..driveinini["ftp"]["lh"]..":guest@"..driveinini["ftp"]["lh"]..":"..driveinini["ftp"]["lp"])
+    else
+      ftp = net.Ftp(driveinini["ftp"]["lh"])
+    end
+    o = 0
+    for name, isdir in ftp:list("*.*") do
+      if isdir then
+        print("\t"..name)
+        if name == driveinini["ftp"]["lf"] then
+          o = 1
+          ui.info("Connected")
+          ftp.currentdir = "/"..driveinini["ftp"]["lf"]
+          ini.save(settings,driveinini)
+          print(ldl)
+          print(ldl.."PSP/GAME")
+        end
+      else
+        print("\t/"..name)
+      end
+    end
+    if o == 0 then
+      ui.error("Could not find folder.")
+    end
+  else
+    DriveSelect()
   end
 else
   ui.msg("Selected PSP at "..ldl)
