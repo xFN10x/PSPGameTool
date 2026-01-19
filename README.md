@@ -1,4 +1,8 @@
 # PSPGameTool 
+> [!IMPORTANT]
+> This repository has been archived. I am not going to update this anymore, or pay attension to this repository.
+> **However, I am working a new and improved version of this tool. https://github.com/xFN10x/PSPTools**
+
 ![logo](https://github.com/xFN10x/PSPGameTool/blob/main/images/logo.png?raw=true)
 Tools for Adding/Editing Games/Saves
 (Changelog at bottom)
